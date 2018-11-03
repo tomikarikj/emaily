@@ -23,18 +23,16 @@ passport.use(
       callbackURL: '/auth/google/callback',
       proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-      User.findOne({ googleID: profile.id }).then(existingUser => {
-        if (existingUser) {
-          // Vekje postoi registriran clen so google profile id
-          done(null, existingUser);
-        } else {
-          // Clenot ne postoi, zapisi go vo baza
-          new User({ googleID: profile.id })
-            .save()
-            .then(user => done(null, user));
-        }
-      });
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleID: profile.id });
+
+      if (existingUser) {
+        // Vekje postoi registriran clen so google profile id
+        return done(null, existingUser);
+      }
+      // Clenot ne postoi, zapisi go vo baza
+      const user = await new User({ googleID: profile.id }).save();
+      done(null, user);
     }
   )
 );
